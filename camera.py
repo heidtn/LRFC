@@ -16,7 +16,7 @@ class CameraTracker():
     def __del__(self):
         self.cap.release()
 
-    def wait_for_event(self, display=True):
+    def wait_for_event(self, display=True, lead=False):
         while True:
             ret, frame1 = self.cap.read()
             time.sleep(0.1)
@@ -29,13 +29,17 @@ class CameraTracker():
             gray2 = cv2.GaussianBlur(gray2, (5, 5), 0)
 
 
-            pan, tilt, img = check_for_movement(gray1, gray2)
+            pan, tilt, img = self.check_for_movement(gray1, gray2)
+
+            if display:
+                cv2.imshow('frame', img)
+                cv2.waitKey(1)
             if pan is not None:
                 return pan, tilt, img
 
 
     def check_for_movement(self, image1, image2):
-        diff = np.abs(image1 - image2)
+        diff = cv2.absdiff(image2, image1)
 
         diff[diff < DIFF_THRESH] = 0
         diff[diff > 0] = 255
@@ -51,9 +55,16 @@ class CameraTracker():
                 tilt = np.arctan2(ray[1], ray[2])
                 pan = np.arctan2(ray[0], ray[2])
 
-                img = cv2.circle(gray2, (cX, cY), 4, (0, 255, 0), 4)
+                diff = cv2.cvtColor(diff, cv2.COLOR_GRAY2BGR)
+                diff = cv2.circle(diff, (int(cX), int(cY)), 4, (0, 255, 0), 4)
                 return pan, tilt, img
-            else:
-                return None, None, img
+
+        return None, None, diff
                     
 
+if __name__ == "__main__":
+    tracker = CameraTracker("/home/brizo/Downloads/smoke_detection_will.mp4", np.matrix([[600., 0., 256./2], 
+                                          [0.,  600, 192/2.], 
+                                          [0.,   0., 1.]]))
+    tracker.wait_for_event()
+    cv2.waitKey(0)
