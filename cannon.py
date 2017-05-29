@@ -3,7 +3,7 @@ import maestro
 import time
 
 PAN_CENTER = 0.
-TILT_CENTER = 30.
+TILT_CENTER = 0.
 TRIGGER_CENTER = 0.
 
 TRIGGER_FIRE = 20.
@@ -26,11 +26,11 @@ class Cannon():
             self.usb_controller.close()
     
     def ready_position(self):
-        self.usb_controller.setSpeed(PAN, 30)
+        self.usb_controller.setSpeed(PAN, 60)
         self.usb_controller.setSpeed(TILT, 30)
 
-        self.set_angle(PAN, PAN_CENTER)
-        self.set_angle(TILT, TILT_CENTER)
+        self.set_angle(PAN, -PAN_CENTER)
+        self.set_angle(TILT, -TILT_CENTER)
         self.set_angle(TRIGGER, TRIGGER_CENTER)
 
     def fire(self):
@@ -39,8 +39,8 @@ class Cannon():
         self.set_angle(TRIGGER, TRIGGER_CENTER)
 
     def set_pan_tilt(self, pan, tilt):
-        self.set_angle(PAN, pan)
-        self.set_angle(TILT, tilt)
+        self.set_angle(PAN, -pan)
+        self.set_angle(TILT, -tilt)
 
     def set_angle(self, servo, angle):
         # takes a servo number (0-n) and an angle in degrees (-90 - 90)

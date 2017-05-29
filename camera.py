@@ -32,7 +32,7 @@ class CameraTracker():
 
             if display:
                 cv2.imshow('frame', img)
-                cv2.waitKey(0)
+                cv2.waitKey(1)
             if pan is not None:
                 return pan, tilt, img
 
