@@ -14,10 +14,12 @@ tilt_angle = 0.
 pan_spd = 0
 tilt_spd = 0
 
-while True:
+done = False
+while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            done = True
         if event.type == pygame.KEYDOWN or event.type == pygame.KEYUP:
             state = 0
             if event.type == pygame.KEYDOWN: state = 1
@@ -30,6 +32,12 @@ while True:
                 pan_spd = -state
             if event.key == pygame.K_RIGHT:
                 pan_spd = state
+            if event.key == pygame.K_SPACE and state:
+                cannon.fire()
+
+            if event.key ==  pygame.K_ESCAPE:
+                pygame.quit()
+                done = True
 
     pan_angle += pan_spd
     tilt_angle += tilt_spd

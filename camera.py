@@ -28,21 +28,26 @@ class CameraTracker():
             gray1 = cv2.GaussianBlur(gray1, (5, 5), 0)
             gray2 = cv2.GaussianBlur(gray2, (5, 5), 0)
 
-
             pan, tilt, img = self.check_for_movement(gray1, gray2)
 
             if display:
                 cv2.imshow('frame', img)
-                cv2.waitKey(1)
+                cv2.waitKey(0)
             if pan is not None:
                 return pan, tilt, img
 
 
     def check_for_movement(self, image1, image2):
         diff = cv2.absdiff(image2, image1)
+        height, width = image1.shape
 
         diff[diff < DIFF_THRESH] = 0
         diff[diff > 0] = 255
+
+        found_good_contour = False
+        avg_x = 0.
+        avg_y = 0.
+        count = 0
 
         img, contours, hierarchy = cv2.findContours(diff, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
@@ -50,20 +55,31 @@ class CameraTracker():
                 M = cv2.moments(cnt)
                 cX = M["m10"] / M["m00"]
                 cY = M["m01"] / M["m00"]
-                pixel_homogenous = np.matrix([cX, cY, 1]).T
-                ray = self.intrinsic_matrix.T * pixel_homogenous
-                tilt = np.arctan2(ray[1], ray[2])
-                pan = np.arctan2(ray[0], ray[2])
+                avg_y += cY
+                avg_x += cX
+                count += 1
+                found_good_contour = True
+        
+        if found_good_contour:
+            avg_x /= count
+            avg_y /= count
 
-                diff = cv2.cvtColor(diff, cv2.COLOR_GRAY2BGR)
-                diff = cv2.circle(diff, (int(cX), int(cY)), 4, (0, 255, 0), 4)
-                return pan, tilt, img
+            cX = avg_x - self.intrinsic_matrix[0, 2]
+            cY = self.intrinsic_matrix[1, 2] - avg_y
+            f = self.intrinsic_matrix[0, 0]
 
-        return None, None, diff
+            tilt = np.arctan2(cY, f)
+            pan = np.arctan2(cX, f)
+
+            diff = cv2.cvtColor(diff, cv2.COLOR_GRAY2BGR)
+            diff = cv2.circle(diff, (int(avg_x), int(avg_y)), 4, (0, 255, 0), 4)
+            return pan, tilt, diff
+
+        return None, None, image1
                     
 
 if __name__ == "__main__":
-    tracker = CameraTracker("/home/brizo/Downloads/smoke_detection_will.mp4", np.matrix([[600., 0., 256./2], 
+    tracker = CameraTracker("/home/brizo/Videos/Webcam/2017-05-29-135756.webm", np.matrix([[600., 0., 256./2], 
                                           [0.,  600, 192/2.], 
                                           [0.,   0., 1.]]))
     tracker.wait_for_event()

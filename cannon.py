@@ -4,9 +4,9 @@ import time
 
 PAN_CENTER = 0.
 TILT_CENTER = 30.
-TRIGGER_CENTER = 20.
+TRIGGER_CENTER = 0.
 
-TRIGGER_FIRE = 10.
+TRIGGER_FIRE = 20.
 
 PAN     = 0
 TILT    = 1
@@ -26,13 +26,16 @@ class Cannon():
             self.usb_controller.close()
     
     def ready_position(self):
+        self.usb_controller.setSpeed(PAN, 30)
+        self.usb_controller.setSpeed(TILT, 30)
+
         self.set_angle(PAN, PAN_CENTER)
         self.set_angle(TILT, TILT_CENTER)
         self.set_angle(TRIGGER, TRIGGER_CENTER)
 
     def fire(self):
         self.set_angle(TRIGGER, TRIGGER_FIRE)
-        time.sleep(0.5)
+        time.sleep(0.25)
         self.set_angle(TRIGGER, TRIGGER_CENTER)
 
     def set_pan_tilt(self, pan, tilt):
@@ -45,4 +48,3 @@ class Cannon():
         quarter_ms = ms*4
         quarter_ms = int(quarter_ms + .5)
         self.usb_controller.setTarget(servo, quarter_ms)
-        print("set servo", servo, "to", angle)
